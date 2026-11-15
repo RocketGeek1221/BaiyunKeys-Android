@@ -17,3 +17,8 @@ local.properties
 # 日志与临时文件
 *.log
 .tmp/
+
+# 签名材料 —— 绝对不要提交（与 iOS 仓库的 signing/ 约定一致）
+signing/
+*.jks
+*.keystore

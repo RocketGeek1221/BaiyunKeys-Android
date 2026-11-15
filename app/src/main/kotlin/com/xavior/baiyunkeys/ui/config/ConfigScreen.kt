@@ -1,7 +1,10 @@
 package com.xavior.baiyunkeys.ui.config
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -24,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import android.content.ClipData
@@ -43,6 +48,8 @@ import com.xavior.baiyunkeys.ui.components.KeyValueRow
 import com.xavior.baiyunkeys.ui.components.QuietButton
 import com.xavior.baiyunkeys.ui.theme.BaiyunDimens
 import com.xavior.baiyunkeys.ui.theme.LocalBaiyunPalette
+import com.xavior.baiyunkeys.update.UpdateStatus
+import com.xavior.baiyunkeys.update.chipLabel
 import kotlinx.coroutines.launch
 
 /** 配置页要调用的动作集合，省得函数签名排一长串 lambda。 */
@@ -60,6 +67,8 @@ class ConfigActions(
     val onGenerateSm2: () -> Unit,
     val onRevealAutoFetch: () -> Unit,
     val onHideAutoFetch: () -> Unit,
+    /** 关于卡片：检查更新（绕过节流，结果用弹窗反馈）。 */
+    val onCheckUpdate: () -> Unit,
 )
 
 /**
@@ -76,6 +85,7 @@ fun ConfigScreen(
     autoFetchBusy: Boolean,
     autoFetchResult: AutoFetchResult?,
     appVersion: String,
+    updateStatus: UpdateStatus,
 ) {
     val palette = LocalBaiyunPalette.current
     val gate = remember { HiddenEntryGate() }
@@ -245,10 +255,16 @@ fun ConfigScreen(
 
         BaiyunCard {
             CardHeader(title = "关于")
-            KeyValueRow("版本", appVersion)
+            // 检查更新的唯一入口就是这个胶囊：点它 = 检查 / 重看结果
+            VersionRow(
+                version = appVersion,
+                status = updateStatus,
+                onCheck = actions.onCheckUpdate,
+            )
             KeyValueRow("协议", "以 iOS 实现为唯一事实源")
             Text(
-                "本 App 只是把你本人已获授权的门禁凭据在本地离线复用，不上传任何数据。",
+                "联网仅用于检测 GitHub 新版本（以及你主动使用的「自动获取配置」）；" +
+                    "本 App 只是把你本人已获授权的门禁凭据在本地离线复用，不上传任何数据。",
                 color = palette.textTertiary,
                 fontSize = 11.sp,
             )
@@ -303,5 +319,105 @@ fun ConfigScreen(
                 TextButton(onClick = { askCode = false }) { Text("取消") }
             },
         )
+    }
+}
+
+/**
+ * 「版本 x.y.z  [⬤ 已是最新 ⟳]」这一行。
+ *
+ * 检查更新只有一个入口：右边这枚胶囊。它是实心填充的按钮样式，点一下
+ * - 还没查过 / 查过但被 6h 节流跳过 → 真的去查；
+ * - 已经查到新版本 → 直接重看上次的弹窗。
+ */
+@Composable
+private fun VersionRow(
+    version: String,
+    status: UpdateStatus,
+    onCheck: () -> Unit,
+) {
+    val palette = LocalBaiyunPalette.current
+    val checking = status is UpdateStatus.Checking
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("版本", color = palette.textSecondary, fontSize = 12.sp)
+            Text(
+                text = version,
+                color = palette.textPrimary,
+                fontSize = 12.sp,
+                fontFamily = FontFamily.Monospace,
+            )
+        }
+        UpdateChip(
+            status = status,
+            enabled = !checking,
+            onClick = onCheck,
+        )
+    }
+}
+
+/**
+ * 状态胶囊（本质是个按钮）。
+ *
+ * 视觉上分三档，让人一眼看出可以点：
+ * - 有更新：品牌色实底 + 白字，最醒目；
+ * - 已是最新 / 未检查：浅品牌底 + 品牌字；
+ * - 检查中 / 失败：中性或警示色，并禁用点击。
+ */
+@Composable
+private fun UpdateChip(
+    status: UpdateStatus,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val palette = LocalBaiyunPalette.current
+    val shape = RoundedCornerShape(999.dp)
+    val solid = status is UpdateStatus.Available
+    val background = when (status) {
+        is UpdateStatus.Available -> palette.brand
+        is UpdateStatus.Failed -> palette.dangerSoft
+        is UpdateStatus.Checking -> palette.surfaceAlt
+        else -> palette.brandSoft
+    }
+    val contentColor = when {
+        !enabled -> palette.textTertiary
+        status is UpdateStatus.Available -> Color.White
+        status is UpdateStatus.Failed -> palette.danger
+        else -> palette.brand
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(background, shape)
+            .then(
+                if (solid) Modifier else Modifier.border(1.dp, contentColor.copy(alpha = 0.28f), shape),
+            )
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 11.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (status is UpdateStatus.Available) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(contentColor, shape),
+                )
+            }
+            Text(
+                text = status.chipLabel,
+                color = contentColor,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
     }
 }

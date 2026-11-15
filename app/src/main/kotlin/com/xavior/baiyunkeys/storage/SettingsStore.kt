@@ -77,6 +77,12 @@ class SettingsStore(context: Context, scope: CoroutineScope) {
             prefs[KEY_SHOW_AUTO_FETCH] = next.autoFetchVisible
             prefs[KEY_SHOW_AUTO_FETCH_AT] = next.autoFetchShownAt
             prefs[KEY_UDID] = next.udid
+            prefs[KEY_UPDATE_CHECK_ENABLED] = next.updateCheckEnabled
+            prefs[KEY_UPDATE_LAST_CHECK] = next.updateLastCheckAt
+            prefs[KEY_UPDATE_KNOWN_TAG] = next.updateKnownTag
+            prefs[KEY_UPDATE_PROMPTED_VERSION] = next.updatePromptedVersion
+            prefs[KEY_UPDATE_PROMPTED_AT] = next.updatePromptedAt
+            prefs[KEY_NETWORK_NOTICE_SHOWN] = next.networkNoticeShown
         }
     }
 
@@ -118,6 +124,12 @@ class SettingsStore(context: Context, scope: CoroutineScope) {
             autoFetchVisible = this[KEY_SHOW_AUTO_FETCH] ?: defaults.autoFetchVisible,
             autoFetchShownAt = this[KEY_SHOW_AUTO_FETCH_AT] ?: defaults.autoFetchShownAt,
             udid = this[KEY_UDID] ?: defaults.udid,
+            updateCheckEnabled = this[KEY_UPDATE_CHECK_ENABLED] ?: defaults.updateCheckEnabled,
+            updateLastCheckAt = this[KEY_UPDATE_LAST_CHECK] ?: defaults.updateLastCheckAt,
+            updateKnownTag = this[KEY_UPDATE_KNOWN_TAG] ?: defaults.updateKnownTag,
+            updatePromptedVersion = this[KEY_UPDATE_PROMPTED_VERSION] ?: defaults.updatePromptedVersion,
+            updatePromptedAt = this[KEY_UPDATE_PROMPTED_AT] ?: defaults.updatePromptedAt,
+            networkNoticeShown = this[KEY_NETWORK_NOTICE_SHOWN] ?: defaults.networkNoticeShown,
         ).sanitized()
     }
 
@@ -145,5 +157,11 @@ class SettingsStore(context: Context, scope: CoroutineScope) {
         val KEY_SHOW_AUTO_FETCH = booleanPreferencesKey("showAutoFetch")
         val KEY_SHOW_AUTO_FETCH_AT = longPreferencesKey("showAutoFetchAt")
         val KEY_UDID = stringPreferencesKey("baiyun.udid")
+        val KEY_UPDATE_CHECK_ENABLED = booleanPreferencesKey("updateCheckEnabled")
+        val KEY_UPDATE_LAST_CHECK = longPreferencesKey("updateLastCheckAt")
+        val KEY_UPDATE_KNOWN_TAG = stringPreferencesKey("updateKnownTag")
+        val KEY_UPDATE_PROMPTED_VERSION = stringPreferencesKey("updatePromptedVersion")
+        val KEY_UPDATE_PROMPTED_AT = longPreferencesKey("updatePromptedAt")
+        val KEY_NETWORK_NOTICE_SHOWN = booleanPreferencesKey("networkNoticeShown")
     }
 }

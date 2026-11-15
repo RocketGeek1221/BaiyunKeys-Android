@@ -17,6 +17,12 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
+    <!-- 联网：仅用于「检测 GitHub 新版本」与「自动获取配置」，不上传任何门禁数据。
+         INTERNET 属于普通权限，安装时自动授予，不会弹运行时授权框。
+         ACCESS_NETWORK_STATE 用来在离线时直接跳过检测，避免干等超时。 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <!-- 后台无头开锁用前台服务（P5） -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />

@@ -66,6 +66,8 @@ import com.xavior.baiyunkeys.ui.theme.BaiyunDimens
 import com.xavior.baiyunkeys.ui.theme.BaiyunTheme
 import com.xavior.baiyunkeys.ui.theme.LocalBaiyunPalette
 import com.xavior.baiyunkeys.ui.transfer.TransferScreen
+import com.xavior.baiyunkeys.ui.update.NetworkNoticeDialog
+import com.xavior.baiyunkeys.ui.update.UpdateDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -265,6 +267,14 @@ private fun MainContent(container: AppContainer, settings: AppSettings) {
 
     val effectiveTab = if (settings.elderMode) Tab.Home else tab
 
+    // 更新检测：等偏好真正读出来再跑，否则 DataStore 的初始默认值会让节流误判成「从没检查过」
+    val settingsLoaded by container.settings.loaded.collectAsState()
+    LaunchedEffect(settingsLoaded) {
+        if (!settingsLoaded) return@LaunchedEffect
+        container.update.maybeShowNetworkNotice()
+        container.update.checkOnLaunch()
+    }
+
     // ① 冷启动要一次 BLE 权限：Android 10 没有定位权限就扫不到任何设备，
     //    而且这个提示只能由用户点，没法在扫描流程里静默解决。
     val context = LocalContext.current
@@ -359,6 +369,7 @@ private fun MainContent(container: AppContainer, settings: AppSettings) {
         onHideAutoFetch = {
             scope.launch { container.settings.update { it.copy(autoFetchVisible = false) } }
         },
+        onCheckUpdate = { container.update.checkManually() },
     )
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -417,6 +428,7 @@ private fun MainContent(container: AppContainer, settings: AppSettings) {
                         autoFetchBusy = fetching,
                         autoFetchResult = fetchResult,
                         appVersion = BuildConfig.VERSION_NAME,
+                        updateStatus = container.update.status.collectAsState().value,
                     )
                 }
             }
@@ -429,6 +441,31 @@ private fun MainContent(container: AppContainer, settings: AppSettings) {
                 onSelect = {
                     route = null
                     tab = it
+                },
+            )
+        }
+    }
+
+    // 弹窗放在最外层，任何 Tab / 路由下都能弹。
+    // 「联网说明」优先：它只在首次启动出现，先说完再谈更新。
+    val networkNotice by container.update.networkNotice.collectAsState()
+    val updatePrompt by container.update.prompt.collectAsState()
+
+    if (networkNotice) {
+        NetworkNoticeDialog(onDismiss = { container.update.dismissNetworkNotice() })
+    } else {
+        updatePrompt?.let { prompt ->
+            UpdateDialog(
+                prompt = prompt,
+                currentVersion = BuildConfig.VERSION_NAME,
+                onDismiss = { container.update.dismissPrompt() },
+                onUpdate = { release ->
+                    container.update.openDownload(release)
+                    container.update.dismissPrompt()
+                },
+                onOpenPage = {
+                    container.update.openReleasePage()
+                    container.update.dismissPrompt()
                 },
             )
         }

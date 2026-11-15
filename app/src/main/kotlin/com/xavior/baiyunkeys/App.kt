@@ -15,6 +15,7 @@ import com.xavior.baiyunkeys.storage.DoorStore
 import com.xavior.baiyunkeys.storage.GatedUnlockHistory
 import com.xavior.baiyunkeys.storage.HistoryStore
 import com.xavior.baiyunkeys.storage.SettingsStore
+import com.xavior.baiyunkeys.update.UpdateManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -90,4 +91,19 @@ class AppContainer(private val app: Application) {
 
     /** 「自动获取配置」编排。 */
     val autoFetch: AutoFetchService by lazy { AutoFetchService(api) }
+
+    /**
+     * 版本检测：开屏检查一次 + 关于页手动检查。
+     *
+     * 下载交给系统浏览器，App 不写下载器，因此不需要存储权限或安装权限。
+     */
+    val update: UpdateManager by lazy {
+        UpdateManager(
+            context = appContext,
+            settings = settings,
+            scope = appScope,
+            currentVersion = BuildConfig.VERSION_NAME,
+            currentVersionCode = BuildConfig.VERSION_CODE,
+        )
+    }
 }

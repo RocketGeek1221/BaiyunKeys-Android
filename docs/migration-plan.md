@@ -25,7 +25,7 @@
 - 磁贴（TileService）
 - 桌面小组件（Glance）
 - 后台无头开锁（前台服务）
-- 更新检查（不移植）
+- 更新检查（v1.0.2 已移植为「关于页 + 冷启动」，见 §4.9）
 
 ### 非目标
 
@@ -119,7 +119,7 @@ BaiyunKeys-Android/
 | `Theme.swift` | `ui/theme/Theme.kt` | ★ | 色板 1:1（见 §4.6） |
 | `Components.swift` | `ui/components/*` | ★★ | Card / Toast / Badge / 按钮 / 步进 / 开关逐组件复刻 |
 | `RootView.swift` | `MainActivity` + `RootScaffold` | ★★★ | Tab、生物锁、长辈模式、隐藏入口、pending 处理（见 §4.6） |
-| `HomeView.swift` | `ui/screens/home/` | ★★★ | 大按钮、参数卡、日志卡、历史卡、顶栏动作（去掉检查更新） |
+| `HomeView.swift` | `ui/screens/home/` | ★★★ | 大按钮、参数卡、日志卡、历史卡、顶栏动作（不放入口，改由关于页提供） |
 | `ConfigView.swift` | `ui/screens/config/` | ★★★ | 门禁列表、自动获取、导入导出、偏好、关于 |
 | `DoorEditorView.swift` | `ui/screens/editor/` | ★★ | 表单校验、MAC / Key 规范化 |
 | `UnlockButton.swift` | `ui/components/UnlockButton.kt` | ★★ | 涟漪动画参数（见 §4.6） |
@@ -338,7 +338,7 @@ Keystore 方案：`KeyGenParameterSpec` 生成 AES-256-GCM 密钥（`setUserAuth
 
 **与 iOS 版的差异**：
 
-- 首页顶栏去掉「检查更新」按钮（保留蓝牙状态、扫码导入）；
+- 首页顶栏不放「检查更新」按钮（保留蓝牙状态、扫码导入），入口改到配置页「关于」；
 - 配置页「关于」卡片：iOS 版本 → Android 版本（`Build.VERSION.RELEASE`），仓库链接改为 Android 仓库；
 - 触感：`Vibrator` 两档（成功 / 失败），比 iOS 三档略简。
 
@@ -474,7 +474,7 @@ data class DeviceProfile(
 | 2 | 包名 | **`com.xavior.baiyunkeys`** | |
 | 3 | v1 范围 | 前台开锁 + 快捷方式；不含磁贴 / 小组件 / 后台无头开锁 | P5 再补 |
 | 4 | 自动获取配置 | 保留三通道（身份证 / OpenID / OpenID+SM2） | |
-| 5 | 更新检查 | **不移植** | 首页顶栏去掉检查更新按钮 |
+| 5 | 更新检查 | **已移植（v1.0.2）** | 配置页「关于」+ 冷启动 6h 节流；入口不放首页顶栏 |
 | 6 | `deviceInfo.os` | 默认 `0`（与 iOS 一致），常量预留可切 `1` | 见 §4.8 |
 | 7 | 技术栈 | Kotlin + Compose + 原生 BLE + BouncyCastle | 不引第三方 BLE 库 |
 | 8 | 仓库 | 本仓库独立，iOS 仓库不动 | 协议以 iOS 为唯一事实源 |

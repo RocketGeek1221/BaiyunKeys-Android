@@ -65,4 +65,46 @@ class AppSettingsTest {
         assertEquals(ThemeMode.Dark, ThemeMode.of("dark"))
         assertEquals(ThemeMode.Light, ThemeMode.of("light"))
     }
+
+    // MARK: - 更新检测的节流与抑制
+
+    @Test
+    fun updateCheckIsThrottledToSixHours() {
+        val hour = 60L * 60 * 1000
+        val now = 100L * hour
+
+        assertTrue("从没检查过要检查", AppSettings().shouldCheckUpdate(now))
+        assertFalse("刚查过不再查", AppSettings(updateLastCheckAt = now - 5 * hour).shouldCheckUpdate(now))
+        assertTrue("超过 6h 要再查", AppSettings(updateLastCheckAt = now - 6 * hour).shouldCheckUpdate(now))
+        assertTrue(AppSettings(updateLastCheckAt = now - 24 * hour).shouldCheckUpdate(now))
+    }
+
+    @Test
+    fun sameVersionIsNotRePromptedWithinADay() {
+        val hour = 60L * 60 * 1000
+        val now = 100L * hour
+
+        // 没弹过这个版本
+        assertTrue(AppSettings().shouldPromptUpdate("v1.0.2", now))
+        // 两小时前弹过同一个版本
+        assertFalse(
+            AppSettings(updatePromptedVersion = "v1.0.2", updatePromptedAt = now - 2 * hour)
+                .shouldPromptUpdate("v1.0.2", now),
+        )
+        // 换了新版本要弹
+        assertTrue(
+            AppSettings(updatePromptedVersion = "v1.0.2", updatePromptedAt = now - 2 * hour)
+                .shouldPromptUpdate("v1.0.3", now),
+        )
+        // 同一版本满 24h 之后可以再弹
+        assertTrue(
+            AppSettings(updatePromptedVersion = "v1.0.2", updatePromptedAt = now - 24 * hour)
+                .shouldPromptUpdate("v1.0.2", now),
+        )
+    }
+
+    @Test
+    fun networkNoticeStartsUnshown() {
+        assertFalse(AppSettings().networkNoticeShown)
+    }
 }
