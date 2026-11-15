@@ -22,3 +22,7 @@ local.properties
 signing/
 *.jks
 *.keystore
+
+# 签名材料备份（本地保险柜：keystore + base64 + 密码说明，绝不入库）
+signing/backup/
+*.b64
