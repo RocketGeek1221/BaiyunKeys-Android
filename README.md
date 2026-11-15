@@ -61,7 +61,7 @@ https://github.com/XaviorShen/BaiyunKeys-Android/releases/download/latest/Baiyun
 
 ### 更新到新版本
 
-> ⚠️ **v1.0.2 是最后一个需要卸载的版本**；从 1.0.3 起可以直接覆盖升级、数据保留。
+> ⚠️ **v1.0.2 是最后一个需要卸载的版本**；从 v1.0.3 起可以直接覆盖升级、数据保留。
 
 但只要涉及卸载，就务必先备份：
 
@@ -210,7 +210,7 @@ git push origin v1.0.0
 
 ## 测试
 
-`core` 是纯 JVM 模块（零 `android.*` 依赖），协议层全部在这里对拍：**153 条单测**，覆盖
+`core` 是纯 JVM 模块（零 `android.*` 依赖），协议层全部在这里对拍：**155 条单测**，覆盖
 Hex / DES / SM2 / RSA 分块 / 握手帧 / 回执状态机 / 门禁编解码 / 导入导出 / 偏好收敛 / 深链 / 开锁编排 /
 版本比较 / GitHub Release 解析。
 
@@ -283,7 +283,7 @@ App 注册了 `baiyunkeys://` scheme，两种格式：
 
 **已验证**（代码 + 单元测试 + 真机）：
 
-- 153 条单元测试全绿；协议层与 iOS web 版 golden vectors 逐字节对拍，诊断页在真机上算出的握手帧与 vector 一致；
+- 155 条单元测试全绿；协议层与 iOS web 版 golden vectors 逐字节对拍，诊断页在真机上算出的握手帧与 vector 一致；
 - 真机（Android 9、Android 17 各一台）跑通：安装启动、蓝牙扫描（收到真实广播、10s 超时、失败回执与历史记录）、
   Keystore 加密落盘、掩码显示、深链、小组件 / 快捷方式注册；
 - 生物识别锁屏：**Android 9 走指纹、Android 17 走 `BIOMETRIC_STRONG or DEVICE_CREDENTIAL` 组合**，

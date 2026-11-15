@@ -85,6 +85,26 @@ class GitHubReleaseApiTest {
     }
 
     @Test
+    fun timeoutIsReportedAsTimeout() = runTest {
+        val transport = FakeTransport()
+        transport.responder = { throw java.net.SocketTimeoutException() }
+
+        val error = runCatching { api(transport).latestRelease() }.exceptionOrNull()
+
+        assertEquals("请求超时，请检查网络后重试", error?.message)
+    }
+
+    @Test
+    fun unknownHostIsReportedAsDnsFailure() = runTest {
+        val transport = FakeTransport()
+        transport.responder = { throw java.net.UnknownHostException("api.github.com") }
+
+        val error = runCatching { api(transport).latestRelease() }.exceptionOrNull()
+
+        assertEquals("无法解析 api.github.com，请检查网络或代理设置", error?.message)
+    }
+
+    @Test
     fun parsesReleaseFieldsAndAsset() = runTest {
         val transport = FakeTransport()
         transport.responder = { HttpResponse(200, fullRelease) }

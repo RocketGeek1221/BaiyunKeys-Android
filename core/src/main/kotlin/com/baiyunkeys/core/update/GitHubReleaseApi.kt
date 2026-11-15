@@ -50,7 +50,7 @@ class GitHubReleaseApi(
         } catch (e: UpdateException) {
             throw e
         } catch (e: Exception) {
-            throw UpdateException("网络不可用，请检查连接后重试")
+            throw UpdateException(networkMessage(e))
         }
 
         return when (response.code) {
@@ -80,9 +80,23 @@ class GitHubReleaseApi(
                 ),
             )
         } catch (e: Exception) {
-            throw UpdateException("网络不可用，请检查连接后重试")
+            throw UpdateException(networkMessage(e))
         }
         return if (response.code == 200) parse(response.body) else null
+    }
+
+    /**
+     * 网络异常翻成人话。
+     *
+     * 用户看到的应该是「超时 / 域名解析失败 / HTTPS 失败 / 被系统拒绝」，
+     * 而不是 `socket failed: EACCES (Permission denied)` 这种原文。
+     */
+    private fun networkMessage(error: Throwable): String = when (error) {
+        is java.net.SocketTimeoutException -> "请求超时，请检查网络后重试"
+        is java.net.UnknownHostException -> "无法解析 api.github.com，请检查网络或代理设置"
+        is javax.net.ssl.SSLException -> "HTTPS 连接失败，请检查网络环境"
+        is java.net.SocketException -> "网络请求被系统拒绝（无网络权限或网络策略限制）"
+        else -> "网络不可用，请检查连接后重试"
     }
 
     private fun parse(body: String): ReleaseInfo {
