@@ -330,7 +330,9 @@ Keystore 方案：`KeyGenParameterSpec` 生成 AES-256-GCM 密钥（`setUserAuth
 - 生物识别锁屏：冷启动一次，`BiometricPrompt`，失败文案映射（取消 / 锁定 / 未录入 / 不支持 / 未设密码）；
 - 长辈模式：首页顶栏图标**长按 3 秒**切换，弹窗勾选「禁用门禁选择器 / 隐藏日志 / 隐藏历史」；拦截切配置 Tab；
 - 快速模式：长按 3 秒切换，弹窗说明；
-- **隐藏入口**：配置 Tab 连点 10 次 → 访问码 `123456789` → 显示「自动获取配置」；显示中连点 5 次隐藏；24h TTL 自动翻回隐藏；
+- **隐藏入口**：配置页标题连点若干次 → 输入访问码 → 显示「自动获取配置」；显示中连点即可隐藏；24h TTL 自动翻回隐藏。
+  具体次数与口令**不在文档中复述**（对齐上游 iOS README 的口径），见 `HiddenEntryGate` 与 `AppSettings.AUTO_FETCH_ACCESS_CODE`。
+  注意这只是防止误触的软门槛，常量随 APK 下发，不构成安全边界；
 - `pendingUnlockDoorID` 处理：`onResume` 读取 → 选中门禁 → 延迟 300ms 开锁；
 - 「打开即开锁」/「切回也开锁」：`Lifecycle.Event.ON_START` + 3s 节流。
 

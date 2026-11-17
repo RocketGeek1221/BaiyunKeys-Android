@@ -18,8 +18,10 @@ class HiddenEntryGateTest {
     @Test
     fun correctCodeReveals() {
         val gate = HiddenEntryGate()
-        assertEquals(HiddenEntryGate.Result.Reveal, gate.onSubmitCode("123456789"))
-        assertEquals(HiddenEntryGate.Result.Reveal, gate.onSubmitCode("  123456789 "))
+        // 口令不再在测试里重复一份字面量：以 AppSettings 的常量为唯一来源
+        val code = AppSettings.AUTO_FETCH_ACCESS_CODE
+        assertEquals(HiddenEntryGate.Result.Reveal, gate.onSubmitCode(code))
+        assertEquals(HiddenEntryGate.Result.Reveal, gate.onSubmitCode("  $code "))
     }
 
     @Test
